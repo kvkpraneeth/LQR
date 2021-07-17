@@ -2,8 +2,8 @@
 #define LQR_H
 
 #include "eigen3/Eigen/Core"
-#include <eigen3/Eigen/src/Core/Matrix.h>
 #include <memory>
+#include "eigen3/Eigen/Eigenvalues"
 
 template<int numberOfInputs, int numberOfStates>
 struct LinearStateSpace
@@ -42,7 +42,7 @@ class lqr
 {
 
     //Defaults.
-    lqr();
+    lqr(Eigen::MatrixXd A_, Eigen::MatrixXd B_, Eigen::MatrixXd Q_, Eigen::MatrixXd R_);
 
     private:
         
@@ -56,29 +56,17 @@ class lqr
 
         //Cost Function Q and R Matrices.
 
-        //Positive Definite.
+            //Positive Definite.
         Eigen::MatrixXd R = Eigen::MatrixXd::Identity(numberOfInputs, numberOfInputs);
-        //Positive Semi Definite.
+            //Positive Semi Definite.
         Eigen::MatrixXd Q = Eigen::MatrixXd::Identity(numberOfStates, numberOfStates);
 
-    private:
+        //Sets the Gain of the System.
+        //Arimoto-Potter Algorithm @TakaHoribe/Riccati_Solver
+        void setK();
 
-        //Initial Cost.
-        double cost = 0;
-
-    public:
-
-        /*
-        
-            Cost Function Algorithm:
-
-                J += X.T @ Q @ X + U.T @ R @ U
-
-        */
-        
-        void costFunc();
-
-        Eigen::MatrixXd result();
+        //Compute the Required Control Sequence
+        void computeU();
 
 };
 
