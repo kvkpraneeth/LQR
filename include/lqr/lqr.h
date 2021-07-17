@@ -2,37 +2,42 @@
 #define LQR_H
 
 #include "eigen3/Eigen/Core"
+#include <eigen3/Eigen/src/Core/Matrix.h>
 #include <memory>
 
-template<int numberOfInputs, int numberOfOutputs, int numberOfStates>
+template<int numberOfInputs, int numberOfStates>
 struct LinearStateSpace
 {
 
     /*
         Linear State Space representation: 
 
-        X' = AX + BU; Y = KX;
+        X' = AX + BU;
+        U = -KX;
 
-        @X (numberOfStates, 1): Vector
-        @Y (numberOfOutputs, 1): Vector
-        @U (numberOfInputs, 1): Vector
+        Dimensions:
+        
+            @X (numberOfStates, 1): Vector
+            @U (numberOfInputs, 1): Vector
+            @X' = X : Vector
+                                        
+            @A weights/penalties of X: (numberOfStates, numberOfStates): Vector
+            @B weights/penalties of U: (numberOfStates, numberOfInputs): Vector
+            @K System Gain for Full State Feedback Controller: (numberOfInputs, numberOfStates): Vector
+    
 
-        @A weights/penalties of X
-        @B weights/penalties of U
-        @K System Gain for Full State Feedback Controller
     */
 
-    Eigen::Matrix<double, numberOfInputs, 1> U;  
-    Eigen::Matrix<double, numberOfOutputs, 1> Y;
-    Eigen::Matrix<double, numberOfStates, 1> X;
+    Eigen::MatrixXd U = Eigen::MatrixXd::Identity(numberOfInputs, 1);
+    Eigen::MatrixXd X = Eigen::MatrixXd::Identity(numberOfStates, 1);
 
-    Eigen::Matrix<double, numberOfOutputs, numberOfStates> A;  
-    Eigen::Matrix<double, numberOfOutputs, numberOfInputs> B;  
-    Eigen::Matrix<double, numberOfOutputs, numberOfStates> K;  
+    Eigen::MatrixXd A = Eigen::MatrixXd::Identity(numberOfStates, numberOfStates);
+    Eigen::MatrixXd B = Eigen::MatrixXd::Identity(numberOfStates, numberOfInputs);
+    Eigen::MatrixXd K = Eigen::MatrixXd::Identity(numberOfInputs, numberOfStates);
 
 };
 
-template<int numberOfInputs, int numberOfOutputs, int numberOfStates>
+template<int numberOfInputs, int numberOfStates>
 class lqr
 {
 
@@ -42,17 +47,21 @@ class lqr
     private:
         
         //Plant Information.
-        int numberOfInputs_, numberOfOutputs_, numberOfStates_;
+        int numberOfInputs_, numberOfStates_;
+
+    public:
 
         //System init.
-        struct LinearStateSpace<numberOfInputs, numberOfOutputs, numberOfStates> System;
+        struct LinearStateSpace<numberOfInputs, numberOfStates> System;
 
         //Cost Function Q and R Matrices.
 
         //Positive Definite.
-        Eigen::Matrix<double, numberOfInputs, numberOfInputs> R;
+        Eigen::MatrixXd R = Eigen::MatrixXd::Identity(numberOfInputs, numberOfInputs);
         //Positive Semi Definite.
-        Eigen::Matrix<double, numberOfStates, numberOfStates> Q;
+        Eigen::MatrixXd Q = Eigen::MatrixXd::Identity(numberOfStates, numberOfStates);
+
+    private:
 
         //Initial Cost.
         double cost = 0;
@@ -66,9 +75,10 @@ class lqr
                 J += X.T @ Q @ X + U.T @ R @ U
 
         */
+        
         void costFunc();
 
-        Eigen::Matrix<double, numberOfInputs, numberOfStates> result();
+        Eigen::MatrixXd result();
 
 };
 
