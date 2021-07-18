@@ -24,32 +24,27 @@ struct LinearStateSpace
             @A weights/penalties of X: (numberOfStates, numberOfStates): Vector
             @B weights/penalties of U: (numberOfStates, numberOfInputs): Vector
             @K System Gain for Full State Feedback Controller: (numberOfInputs, numberOfStates): Vector
-    
-
     */
 
-    Eigen::MatrixXd U = Eigen::MatrixXd::Identity(numberOfInputs, 1);
-    Eigen::MatrixXd X = Eigen::MatrixXd::Identity(numberOfStates, 1);
+    Eigen::Matrix<float, numberOfInputs, 1> U;
+    Eigen::Matrix<float, numberOfInputs, 1> X;
 
-    Eigen::MatrixXd A = Eigen::MatrixXd::Identity(numberOfStates, numberOfStates);
-    Eigen::MatrixXd B = Eigen::MatrixXd::Identity(numberOfStates, numberOfInputs);
-    Eigen::MatrixXd K = Eigen::MatrixXd::Identity(numberOfInputs, numberOfStates);
+    Eigen::Matrix<float, numberOfStates, numberOfStates> A;
+    Eigen::Matrix<float, numberOfStates, numberOfInputs> B;
+    Eigen::Matrix<float, numberOfInputs, numberOfStates> K;
 
 };
 
 template<int numberOfInputs, int numberOfStates>
 class lqr
 {
-
-    //Defaults.
-    lqr(Eigen::MatrixXd A_, Eigen::MatrixXd B_, Eigen::MatrixXd Q_, Eigen::MatrixXd R_);
-
-    private:
-        
-        //Plant Information.
-        int numberOfInputs_, numberOfStates_;
-
+    
     public:
+        //Defaults.
+            lqr(Eigen::Matrix<float, numberOfStates, numberOfStates>A_,
+            Eigen::Matrix<float, numberOfStates, numberOfInputs>B_, 
+            Eigen::Matrix<float, numberOfStates, numberOfStates>Q_,
+            Eigen::Matrix<float, numberOfInputs, numberOfInputs>R_);
 
         //System init.
         struct LinearStateSpace<numberOfInputs, numberOfStates> System;
@@ -57,9 +52,9 @@ class lqr
         //Cost Function Q and R Matrices.
 
             //Positive Definite.
-        Eigen::MatrixXd R = Eigen::MatrixXd::Identity(numberOfInputs, numberOfInputs);
+        Eigen::Matrix<float, numberOfInputs, numberOfInputs> R;
             //Positive Semi Definite.
-        Eigen::MatrixXd Q = Eigen::MatrixXd::Identity(numberOfStates, numberOfStates);
+        Eigen::Matrix<float, numberOfStates, numberOfStates> Q;
 
         //Sets the Gain of the System.
         //Arimoto-Potter Algorithm @TakaHoribe/Riccati_Solver
@@ -68,6 +63,59 @@ class lqr
         //Compute the Required Control Sequence
         void computeU();
 
+        
 };
+
+template<int numberOfInputs, int numberOfStates>
+lqr<numberOfInputs, numberOfStates>::lqr(Eigen::Matrix<float, numberOfStates, numberOfStates>A_,
+                                        Eigen::Matrix<float, numberOfStates, numberOfInputs>B_, 
+                                        Eigen::Matrix<float, numberOfStates, numberOfStates>Q_,
+                                        Eigen::Matrix<float, numberOfInputs, numberOfInputs>R_)
+
+{
+
+    System.A = A_;
+    System.B = B_;
+
+    Q = Q_;
+    R = R_;
+
+    
+}
+
+template<int numberOfInputs, int numberOfStates>
+void lqr<numberOfInputs, numberOfStates>::setK()
+{
+
+    Eigen::Matrix<float, 2*numberOfStates, 2*numberOfStates> Hamiltonian;
+
+    Hamiltonian << System.A, -System.B * R.inverse() * System.B.transpose(), -Q, -System.A.transpose();
+
+    Eigen::EigenSolver<Eigen::Matrix<float, 2*numberOfStates, 2*numberOfStates>> EigenValues(Hamiltonian);
+
+    Eigen::Matrix<float, 2*numberOfStates, 1> EigenVector;
+
+
+    int j = 0;
+    for(int i = 0; i < 2*numberOfStates; ++i)
+    {
+        if(EigenValues.eigenvalues()[i].real() < 0.)
+        {
+            EigenVector.col(j) = EigenValues.eigenvectors().block(0, i, 2*numberOfStates, 1);
+            ++j;
+        }
+    }
+
+    System.K = (EigenVector.block(numberOfStates, 0, numberOfStates, numberOfStates) 
+                    * EigenVector.block(0,0,numberOfStates,numberOfStates).inverse()).real();
+
+}
+
+
+template<int numberOfInputs, int numberOfStates>
+void lqr<numberOfInputs, numberOfStates>::computeU()
+{
+    System.U = - System.K * System.X;
+}
 
 #endif

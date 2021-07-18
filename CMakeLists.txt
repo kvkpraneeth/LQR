@@ -18,31 +18,24 @@ set(INCLUDE_DIRS
     include
 )
 
-find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(Eigen3 REQUIRED)
-
 set(dependencies
     rclcpp
     Eigen3)
 
-add_library(lqr_core SHARED src/lqr.cpp)
-ament_target_dependencies(lqr_core ${dependencies})
-target_include_directories(lqr_core 
-    PUBLIC include) 
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(Eigen3 REQUIRED)
 
-set(libs
-    lqr_core)
-
-install(TARGETS lqr_core
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include
-)
+add_executable(lqr src/main.cpp)
+ament_target_dependencies(lqr ${dependencies})
+target_include_directories(lqr PUBLIC include)
 
 install(DIRECTORY include/
     DESTINATION include
+)
+
+install(TARGETS lqr
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
@@ -53,6 +46,5 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_include_directories(${INCLUDE_DIRS})
-ament_export_libraries(${libs})
 ament_export_dependencies(${dependencies})
 ament_package()
