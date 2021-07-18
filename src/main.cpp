@@ -23,5 +23,12 @@ int main(int argc, char * argv[])
     
     std::shared_ptr<lqr<1,2>> BlockSystemController = std::make_shared<lqr<1,2>>(A,B,Q,R);
 
+    BlockSystemController->setK();
+
+    std::cout << BlockSystemController->System.K << std::endl;
+
+    // Solution can be verified from https://www.youtube.com/watch?v=wEevt2a4SKI&t=3656s
+    // at 1:00:58 TimeStamp;
+
     return 0;
 }

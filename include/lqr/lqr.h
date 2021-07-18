@@ -2,6 +2,7 @@
 #define LQR_H
 
 #include "eigen3/Eigen/Core"
+#include <iostream>
 #include <memory>
 #include "eigen3/Eigen/Eigenvalues"
 
@@ -86,28 +87,32 @@ lqr<numberOfInputs, numberOfStates>::lqr(Eigen::Matrix<float, numberOfStates, nu
 template<int numberOfInputs, int numberOfStates>
 void lqr<numberOfInputs, numberOfStates>::setK()
 {
-
     Eigen::Matrix<float, 2*numberOfStates, 2*numberOfStates> Hamiltonian;
 
     Hamiltonian << System.A, -System.B * R.inverse() * System.B.transpose(), -Q, -System.A.transpose();
 
     Eigen::EigenSolver<Eigen::Matrix<float, 2*numberOfStates, 2*numberOfStates>> EigenValues(Hamiltonian);
-
-    Eigen::Matrix<float, 2*numberOfStates, 1> EigenVector;
-
-
+    
+    Eigen::MatrixXcf EigenVector = Eigen::MatrixXcf::Zero(2 * numberOfStates, numberOfStates);
+    
     int j = 0;
-    for(int i = 0; i < 2*numberOfStates; ++i)
+    for (int i = 0; i < 2 * numberOfStates; ++i)
     {
-        if(EigenValues.eigenvalues()[i].real() < 0.)
+        if (EigenValues.eigenvalues()[i].real() < 0.)
         {
-            EigenVector.col(j) = EigenValues.eigenvectors().block(0, i, 2*numberOfStates, 1);
+            EigenVector.col(j) = EigenValues.eigenvectors().block(0, i, 2 * numberOfStates, 1);
             ++j;
         }
     }
 
-    System.K = (EigenVector.block(numberOfStates, 0, numberOfStates, numberOfStates) 
-                    * EigenVector.block(0,0,numberOfStates,numberOfStates).inverse()).real();
+    Eigen::MatrixXcf t1, t2;
+
+    t1 = EigenVector.block(0,0, numberOfStates, numberOfStates);
+    t2 = EigenVector.block(numberOfStates, 0, numberOfStates,numberOfStates);
+
+    auto P = (t2*t1.inverse()).real();
+
+    System.K = R.inverse() * System.B.transpose() * P;
 
 }
 
@@ -117,5 +122,6 @@ void lqr<numberOfInputs, numberOfStates>::computeU()
 {
     System.U = - System.K * System.X;
 }
+
 
 #endif
