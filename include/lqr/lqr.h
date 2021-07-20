@@ -27,12 +27,12 @@ struct LinearStateSpace
             @K System Gain for Full State Feedback Controller: (numberOfInputs, numberOfStates): Vector
     */
 
-    Eigen::Matrix<float, numberOfInputs, 1> U;
-    Eigen::Matrix<float, numberOfInputs, 1> X;
+    Eigen::Matrix<double, numberOfInputs, 1> U;
+    Eigen::Matrix<double, numberOfInputs, 1> X;
 
-    Eigen::Matrix<float, numberOfStates, numberOfStates> A;
-    Eigen::Matrix<float, numberOfStates, numberOfInputs> B;
-    Eigen::Matrix<float, numberOfInputs, numberOfStates> K;
+    Eigen::Matrix<double, numberOfStates, numberOfStates> A;
+    Eigen::Matrix<double, numberOfStates, numberOfInputs> B;
+    Eigen::Matrix<double, numberOfInputs, numberOfStates> K;
 
 };
 
@@ -42,10 +42,10 @@ class lqr
     
     public:
         //Defaults.
-            lqr(Eigen::Matrix<float, numberOfStates, numberOfStates>A_,
-            Eigen::Matrix<float, numberOfStates, numberOfInputs>B_, 
-            Eigen::Matrix<float, numberOfStates, numberOfStates>Q_,
-            Eigen::Matrix<float, numberOfInputs, numberOfInputs>R_);
+            lqr(Eigen::Matrix<double, numberOfStates, numberOfStates>A_,
+            Eigen::Matrix<double, numberOfStates, numberOfInputs>B_, 
+            Eigen::Matrix<double, numberOfStates, numberOfStates>Q_,
+            Eigen::Matrix<double, numberOfInputs, numberOfInputs>R_);
 
         //System init.
         struct LinearStateSpace<numberOfInputs, numberOfStates> System;
@@ -53,9 +53,9 @@ class lqr
         //Cost Function Q and R Matrices.
 
             //Positive Definite.
-        Eigen::Matrix<float, numberOfInputs, numberOfInputs> R;
+        Eigen::Matrix<double, numberOfInputs, numberOfInputs> R;
             //Positive Semi Definite.
-        Eigen::Matrix<float, numberOfStates, numberOfStates> Q;
+        Eigen::Matrix<double, numberOfStates, numberOfStates> Q;
 
         //Sets the Gain of the System.
         //Arimoto-Potter Algorithm @TakaHoribe/Riccati_Solver
@@ -64,14 +64,13 @@ class lqr
         //Compute the Required Control Sequence
         void computeU();
 
-        
 };
 
 template<int numberOfInputs, int numberOfStates>
-lqr<numberOfInputs, numberOfStates>::lqr(Eigen::Matrix<float, numberOfStates, numberOfStates>A_,
-                                        Eigen::Matrix<float, numberOfStates, numberOfInputs>B_, 
-                                        Eigen::Matrix<float, numberOfStates, numberOfStates>Q_,
-                                        Eigen::Matrix<float, numberOfInputs, numberOfInputs>R_)
+lqr<numberOfInputs, numberOfStates>::lqr(Eigen::Matrix<double, numberOfStates, numberOfStates>A_,
+                                        Eigen::Matrix<double, numberOfStates, numberOfInputs>B_, 
+                                        Eigen::Matrix<double, numberOfStates, numberOfStates>Q_,
+                                        Eigen::Matrix<double, numberOfInputs, numberOfInputs>R_)
 
 {
 
@@ -87,13 +86,13 @@ lqr<numberOfInputs, numberOfStates>::lqr(Eigen::Matrix<float, numberOfStates, nu
 template<int numberOfInputs, int numberOfStates>
 void lqr<numberOfInputs, numberOfStates>::setK()
 {
-    Eigen::Matrix<float, 2*numberOfStates, 2*numberOfStates> Hamiltonian;
+    Eigen::Matrix<double, 2*numberOfStates, 2*numberOfStates> Hamiltonian;
 
     Hamiltonian << System.A, -System.B * R.inverse() * System.B.transpose(), -Q, -System.A.transpose();
 
-    Eigen::EigenSolver<Eigen::Matrix<float, 2*numberOfStates, 2*numberOfStates>> EigenValues(Hamiltonian);
+    Eigen::EigenSolver<Eigen::Matrix<double, 2*numberOfStates, 2*numberOfStates>> EigenValues(Hamiltonian);
     
-    Eigen::MatrixXcf EigenVector = Eigen::MatrixXcf::Zero(2 * numberOfStates, numberOfStates);
+    Eigen::MatrixXcd EigenVector = Eigen::MatrixXcd::Zero(2 * numberOfStates, numberOfStates);
     
     int j = 0;
     for (int i = 0; i < 2 * numberOfStates; ++i)
@@ -105,7 +104,7 @@ void lqr<numberOfInputs, numberOfStates>::setK()
         }
     }
 
-    Eigen::MatrixXcf t1, t2;
+    Eigen::MatrixXcd t1, t2;
 
     t1 = EigenVector.block(0,0, numberOfStates, numberOfStates);
     t2 = EigenVector.block(numberOfStates, 0, numberOfStates,numberOfStates);
@@ -122,6 +121,5 @@ void lqr<numberOfInputs, numberOfStates>::computeU()
 {
     System.U = - System.K * System.X;
 }
-
 
 #endif
