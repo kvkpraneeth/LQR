@@ -1,28 +1,27 @@
 #include "lqr/lqr.h"
+#include <eigen3/Eigen/src/Core/util/Constants.h>
+#include <iostream>
 
 int main()
 {
     
-    Eigen::Matrix<double, 2, 2> A;
-    Eigen::Matrix<double, 2, 1> B;
-    Eigen::Matrix<double, 2, 2> Q;
-    Eigen::Matrix<double, 1, 1> R;
+    LinearStateSpace System;
 
-    A << 0, 1, 0, -1.0/5.0;
+    System.A = Eigen::Matrix<double, 2, 2>();
+    System.B = Eigen::Matrix<double, 2, 1>();
 
-    B << 0, 1;
+    System.A << 0, 1, 0, -1.0/5.0;
 
-    Q << 1, 0, 0, 1;
+    System.B << 0, 1;
 
-    R << 0.01;
-    
-    std::shared_ptr<lqr<1,2>> BlockSystemController = std::make_shared<lqr<1,2>>(A,B,Q,R);
+    // Row Major Ordering
+    std::vector<double> Q{1,0,0,1}, R{0.01};
 
-    BlockSystemController->setK();
-
-    std::cout << BlockSystemController->System.K << std::endl;
+    lqr x(System, Q, R);
 
     // Solution can be verified from https://www.youtube.com/watch?v=wEevt2a4SKI&t=3656s
+    
+    std::cout << System.K;
 
     return 0;
 }
