@@ -34,6 +34,10 @@ install(DIRECTORY include/
     DESTINATION include
 )
 
+install(DIRECTORY scenes scripts
+    DESTINATION share/${PROJECT_NAME}
+)
+
 install(TARGETS lqrtest ros2lqrtest
   DESTINATION lib/${PROJECT_NAME}
 )
