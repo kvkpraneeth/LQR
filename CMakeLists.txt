@@ -29,6 +29,7 @@ target_link_libraries(lqrtest lqr_core)
 add_executable(ros2lqrtest src/ros2test.cpp)
 ament_target_dependencies(ros2lqrtest Eigen3 rclcpp)
 target_include_directories(ros2lqrtest PUBLIC include)
+target_link_libraries(ros2lqrtest lqr_core)
 
 install(DIRECTORY include/
     DESTINATION include
