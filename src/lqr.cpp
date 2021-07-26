@@ -77,4 +77,3 @@ void lqr::setK(LinearStateSpace &System_)
     System_.K = K;
 
 }
-

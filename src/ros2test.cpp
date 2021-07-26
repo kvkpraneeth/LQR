@@ -4,6 +4,7 @@
 #include "std_msgs/msg/float32.hpp"
 #include <eigen3/Eigen/src/Core/Matrix.h>
 #include <functional>
+#include <iostream>
 #include <rclcpp/executor.hpp>
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/subscription.hpp>
@@ -39,8 +40,8 @@ class testNode : public rclcpp::Node
             {
                 for(int j=0; j<6; j++)
                 {
-                    Q[6*i + j] = 1*(i==j);
-                    R[6*i + j] = 0.01*(i==j);
+                    Q[6*i + j] = 10*(i==j);
+                    R[6*i + j] = 100*(i==j);
                 }
             }
 
@@ -50,7 +51,7 @@ class testNode : public rclcpp::Node
 
 
         //Publisher Vector
-        std::vector<rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr> joints;        
+        std::vector<rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr> joints;
 
         //Get Joint States
         rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr jointStateSub;
@@ -61,31 +62,42 @@ class testNode : public rclcpp::Node
         //Joint States Callback
         void callback(const std_msgs::msg::Float32MultiArray::SharedPtr msg)
         {
-        
+            
+            for(auto& i : msg->data)
+            {
+                std::cout << i << std::endl;
+            }
+            
+            std::cout << "==========" << std::endl;
+
             Eigen::MatrixXd X = Eigen::MatrixXd(msg->data.size(), 1);
 
             for(unsigned long x = 0; x < msg->data.size(); x++)
             {
                 X(x,0) = msg->data[x] + 0.1;
             }
-  
-//            std::cout << X.size() << std::endl;
+/* 
+            std::cout << X << std::endl;
 
+            std::cout << "==========" << std::endl;
+*/
             Eigen::MatrixXd U = Eigen::MatrixXd(joints.size(), 1);
 
             Eigen::MatrixXd C = Eigen::MatrixXd(joints.size(), msg->data.size());
 
             C = System.K * System.A.inverse();
 
-            std::cout << C << std::endl;
-
             U = -(Eigen::MatrixXd::Identity(joints.size(), joints.size()) - C*System.B)*C*X;
 
-//            std::cout << U << std::endl;;
-
             for(int x=0; x<U.rows(); x++)
-            {
-                joints[x]->publish(U(x,0)); 
+            { 
+                
+                std_msgs::msg::Float32 msg;
+
+                msg.data = U(x,0);
+
+                joints[x]->publish(msg);
+
             }
 
         }
