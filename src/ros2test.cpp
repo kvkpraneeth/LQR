@@ -30,6 +30,8 @@ class testNode : public rclcpp::Node
 
             jointStateSub = this->create_subscription<std_msgs::msg::Float32MultiArray>("abbState", 100,std::bind(&testNode::callback, this,std::placeholders::_1)); 
 
+            jointDesiredSub = this->create_subscription<std_msgs::msg::Float32MultiArray>("desState", 100, std::bind(&testNode::desStateCallback, this, std::placeholders::_1));
+
             System.A = Eigen::MatrixXd::Identity(6,6);
             System.B = Eigen::MatrixXd::Identity(6,6);
 
@@ -41,11 +43,20 @@ class testNode : public rclcpp::Node
                 for(int j=0; j<6; j++)
                 {
                     Q[6*i + j] = 10*(i==j);
-                    R[6*i + j] = 100*(i==j);
+                    R[6*i + j] = 1*(i==j);
                 }
             }
 
             lqr l(System, Q, R);
+           
+            msg_ = std::make_shared<std_msgs::msg::Float32MultiArray>();
+
+            msg_->data.resize(6);
+
+            for(int i = 0; i < 6; i++)
+            {
+                msg_->data[i] = 1.57;
+            }
 
         }
 
@@ -56,51 +67,44 @@ class testNode : public rclcpp::Node
         //Get Joint States
         rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr jointStateSub;
 
-        //Joint States
+        //Joint Desired States
         std_msgs::msg::Float32MultiArray::SharedPtr msg_;
 
+        //Desired Joint States Subscriber
+        rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr jointDesiredSub;
+            
         //Joint States Callback
         void callback(const std_msgs::msg::Float32MultiArray::SharedPtr msg)
-        {
+        {           
             
-            for(auto& i : msg->data)
-            {
-                std::cout << i << std::endl;
-            }
+            Eigen::MatrixXd E = Eigen::MatrixXd(msg->data.size(),1);
             
-            std::cout << "==========" << std::endl;
-
-            Eigen::MatrixXd X = Eigen::MatrixXd(msg->data.size(), 1);
-
-            for(unsigned long x = 0; x < msg->data.size(); x++)
-            {
-                X(x,0) = msg->data[x] + 0.1;
-            }
-/* 
-            std::cout << X << std::endl;
-
-            std::cout << "==========" << std::endl;
-*/
             Eigen::MatrixXd U = Eigen::MatrixXd(joints.size(), 1);
 
-            Eigen::MatrixXd C = Eigen::MatrixXd(joints.size(), msg->data.size());
+            while(msg_->data.empty())
+            {
+                int i = 0;
+                (void) i;
+            }
 
-            C = System.K * System.A.inverse();
+            for(unsigned long x = 0; x<msg->data.size(); x++)
+            {
+                E(x,0) = msg_->data[x] - msg->data[x];
+            }
 
-            U = -(Eigen::MatrixXd::Identity(joints.size(), joints.size()) - C*System.B)*C*X;
-
-            for(int x=0; x<U.rows(); x++)
-            { 
-                
-                std_msgs::msg::Float32 msg;
-
-                msg.data = U(x,0);
-
-                joints[x]->publish(msg);
-
+            U = System.K * E;
+            
+            for(int x = 0; x < U.size(); x++)
+            {
+                std_msgs::msg::Float32 uk;
+                uk.data = U(x,0);
+                std::cout << U(x,0) << std::endl;
+                joints[x]->publish(uk);
             }
 
         }
+
+        void desStateCallback(const std_msgs::msg::Float32MultiArray::SharedPtr msg){msg_=msg;};
 
         //System Description.
         LinearStateSpace System;
