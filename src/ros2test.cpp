@@ -98,7 +98,6 @@ class testNode : public rclcpp::Node
             {
                 std_msgs::msg::Float32 uk;
                 uk.data = U(x,0);
-                std::cout << U(x,0) << std::endl;
                 joints[x]->publish(uk);
             }
 
