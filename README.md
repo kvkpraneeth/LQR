@@ -20,11 +20,11 @@
   
   This solution was displayed in CoppeliaSim. In order to check that, you need to add Float32MultiArray message to the meta of the ros2 package. For more information: [A good starting point](https://www.coppeliarobotics.com/helpFiles/en/ros2Tutorial.htm)
  
-  In general, LQR is built for maintaining a value, which is not what a controller is. But in order to use it as a controller, consider the system error to be the system state and update the error every iteration. This will make LQR regulate the error at 0 while minimizing the quadratic cost, which makes it a perfectly good controller.
+  LQR as the name suggests is a regulator, maintains a value or state while trying to minimize a quadratic cost function that is based upon the effort it can apply on the actuators as well as the error importance of the state (R and Q respectively). 
   
+  For reaching a reference state with LQR, we have to regulate the error to a 0. Which implies that instead of considering the state vector to be system state, the state vector should be the error. 
+
   #### Test 2 : Video
-  
-  
 
 https://user-images.githubusercontent.com/55596533/127761370-56568959-60c7-47f2-ad2e-d3ec1033253a.mp4
 
