@@ -22,3 +22,10 @@
  
   In general, LQR is built for maintaining a value, which is not what a controller is. But in order to use it as a controller, consider the system error to be the system state and update the error every iteration. This will make LQR regulate the error at 0 while minimizing the quadratic cost, which makes it a perfectly good controller.
   
+  #### Test 2 : Video
+  
+  
+
+https://user-images.githubusercontent.com/55596533/127761370-56568959-60c7-47f2-ad2e-d3ec1033253a.mp4
+
+
