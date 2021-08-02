@@ -42,8 +42,8 @@ class testNode : public rclcpp::Node
             {
                 for(int j=0; j<6; j++)
                 {
-                    Q[6*i + j] = 10*(i==j);
-                    R[6*i + j] = 1*(i==j);
+                    Q[6*i + j] = 1*(i==j);
+                    R[6*i + j] = 50*(i==j);
                 }
             }
 
@@ -55,7 +55,7 @@ class testNode : public rclcpp::Node
 
             for(int i = 0; i < 6; i++)
             {
-                msg_->data[i] = 1.57;
+                msg_->data[i] = 0;
             }
 
         }
