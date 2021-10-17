@@ -75,13 +75,13 @@ void lqr::setK(LinearStateSpace &System_)
 
     Eigen::EigenSolver<Eigen::MatrixXd> EigenValues(Hamiltonian);
 
-	std::cout << "Eigenvalues" << std::endl;
+    std::cout << "Eigenvalues" << std::endl;
 	
-	std::cout << EigenValues.eigenvalues() << std::endl;
+    std::cout << EigenValues.eigenvalues() << std::endl;
 	
-	std::cout << "======" << std::endl;
+    std::cout << "======" << std::endl;
     
-	Eigen::MatrixXcd EigenVector = Eigen::MatrixXcd::Zero(2*numberOfStates, numberOfStates);
+    Eigen::MatrixXcd EigenVector = Eigen::MatrixXcd::Zero(2*numberOfStates, numberOfStates);
 
     int j = 0;
     for (int i = 0; i < 2 * numberOfStates; ++i)
@@ -98,7 +98,7 @@ void lqr::setK(LinearStateSpace &System_)
     t1 = EigenVector.block(0,0, numberOfStates, numberOfStates);
     t2 = EigenVector.block(numberOfStates, 0, numberOfStates,numberOfStates);
 
-    auto P = (t2*t1.inverse()).real();
+    auto P = (t2*t1.inverse()).real();        
     
     auto K = R.inverse() * B.transpose() * P;
 
@@ -108,7 +108,7 @@ void lqr::setK(LinearStateSpace &System_)
 
 	std::cout << "K" << std::endl;
 	
-	std::cout << K << std::endl;
+	std::cout << System_.K << std::endl;
 	
 	std::cout << "======" << std::endl;
 }

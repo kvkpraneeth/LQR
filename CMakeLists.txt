@@ -17,6 +17,8 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(Eigen3 REQUIRED)
 
+set(dependencies rclcpp Eigen3)
+  
 add_library(lqr_core SHARED src/lqr.cpp)
 ament_target_dependencies(lqr_core Eigen3)
 target_include_directories(lqr_core PUBLIC include)
@@ -61,10 +63,6 @@ set(INCLUDE_DIRS
     ${EIGEN3_INCLUDE_DIRS}
     include
 )
-
-set(dependencies
-    rclcpp
-    Eigen3)
 
 ament_export_include_directories(${INCLUDE_DIRS})
 ament_export_libraries(lqr_core)

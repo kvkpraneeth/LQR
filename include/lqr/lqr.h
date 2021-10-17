@@ -47,7 +47,7 @@ class lqr
         
         lqr(LinearStateSpace& System_, std::vector<double> Q_, std::vector<double> R_);
 
-    private:
+    protected:
 
         /*
             @Q is the Error that the System state has. 
