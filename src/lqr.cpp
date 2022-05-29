@@ -13,21 +13,21 @@ lqr::lqr(LinearStateSpace& System_, std::vector<double> Q_, std::vector<double> 
 
     A = System_.A;
 
-	std::cout << "A" << std::endl;
-	
-	std::cout << A << std::endl;
+    std::cout << "A" << std::endl;
 
-	std::cout << "======" << std::endl;
+    std::cout << A << std::endl;
+
+    std::cout << "======" << std::endl;
 
     this->B = Eigen::MatrixXd(numberOfStates, numberOfInputs);
 
     B = System_.B;
-	
-	std::cout << "B" << std::endl;
-	
-	std::cout << B << std::endl;
-	
-	std::cout << "======" << std::endl;
+
+    std::cout << "B" << std::endl;
+
+    std::cout << B << std::endl;
+
+    std::cout << "======" << std::endl;
 
     this->Q = Eigen::MatrixXd(numberOfStates, numberOfStates);
 
@@ -40,29 +40,29 @@ lqr::lqr(LinearStateSpace& System_, std::vector<double> Q_, std::vector<double> 
         
     }
 
-	std::cout << "Q" << std::endl;
-	
-	std::cout << Q << std::endl;
-	
-	std::cout << "======" << std::endl;
-    
-	this->R = Eigen::MatrixXd(numberOfInputs, numberOfInputs);
+    std::cout << "Q" << std::endl;
+
+    std::cout << Q << std::endl;
+
+    std::cout << "======" << std::endl;
+
+    this->R = Eigen::MatrixXd(numberOfInputs, numberOfInputs);
 
     for(int x = 0; x < numberOfInputs; x++)
     {
         for(int y = 0; y < numberOfInputs; y++)
         {
-            R(x,y) = R_[numberOfStates*x + y];
+            R(x,y) = R_[numberOfInputs*x + y];
         }
     }
 
-	std::cout << "R" << std::endl;
-	
-	std::cout << R << std::endl;
-	
-	std::cout << "======" << std::endl;
-    
-	this->setK(System_);
+    std::cout << "R" << std::endl;
+
+    std::cout << R << std::endl;
+
+    std::cout << "======" << std::endl;
+
+    this->setK(System_);
 
 }
 
@@ -76,11 +76,11 @@ void lqr::setK(LinearStateSpace &System_)
     Eigen::EigenSolver<Eigen::MatrixXd> EigenValues(Hamiltonian);
 
     std::cout << "Eigenvalues" << std::endl;
-	
+
     std::cout << EigenValues.eigenvalues() << std::endl;
-	
+
     std::cout << "======" << std::endl;
-    
+
     Eigen::MatrixXcd EigenVector = Eigen::MatrixXcd::Zero(2*numberOfStates, numberOfStates);
 
     int j = 0;
@@ -99,16 +99,16 @@ void lqr::setK(LinearStateSpace &System_)
     t2 = EigenVector.block(numberOfStates, 0, numberOfStates,numberOfStates);
 
     auto P = (t2*t1.inverse()).real();        
-    
+
     auto K = R.inverse() * B.transpose() * P;
 
     System_.K = Eigen::MatrixXd(numberOfInputs, numberOfStates);
 
     System_.K = K;
 
-	std::cout << "K" << std::endl;
-	
-	std::cout << System_.K << std::endl;
-	
-	std::cout << "======" << std::endl;
+    std::cout << "K" << std::endl;
+
+    std::cout << System_.K << std::endl;
+
+    std::cout << "======" << std::endl;
 }
